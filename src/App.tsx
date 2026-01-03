@@ -10,6 +10,7 @@ import { Home } from './pages/Home';
 import { Turnos } from './pages/Turnos';
 import { Canchas } from './pages/Canchas';
 import { Configuracion } from './pages/Configuracion';
+import { ChangePassword } from './pages/ChangePassword';
 
 // Paleta inspirada en la app móvil de Paddio
 const theme = createTheme({
@@ -179,6 +180,7 @@ function App() {
               <Route path="/turnos" element={<Turnos />} />
               <Route path="/canchas" element={<Canchas />} />
               <Route path="/configuracion" element={<Configuracion />} />
+              <Route path="/change-password" element={<ChangePassword />} />
             </Routes>
           </MainLayout>
         </Router>
