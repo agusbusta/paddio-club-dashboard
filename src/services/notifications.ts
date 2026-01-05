@@ -1,5 +1,5 @@
 import { api } from './api';
-import { Notification, NotificationsListResponse, NotificationActionResponse } from '../types/notification';
+import { NotificationsListResponse, NotificationActionResponse } from '../types/notification';
 
 export const notificationService = {
   // Obtener todas las notificaciones del usuario actual
