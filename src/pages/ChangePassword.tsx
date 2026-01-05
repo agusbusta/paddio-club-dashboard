@@ -12,10 +12,12 @@ import {
 import { Lock as LockIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { authService, ChangePasswordData } from '../services/auth';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 export const ChangePassword: React.FC = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [formData, setFormData] = useState<ChangePasswordData>({
     current_password: '',
     new_password: '',
@@ -23,6 +25,13 @@ export const ChangePassword: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  // Si no hay usuario autenticado, redirigir al login
+  React.useEffect(() => {
+    if (!user) {
+      navigate('/login', { replace: true });
+    }
+  }, [user, navigate]);
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
@@ -61,9 +70,15 @@ export const ChangePassword: React.FC = () => {
     setIsLoading(true);
     try {
       await authService.changePassword(formData);
-      toast.success('Contraseña cambiada exitosamente');
-      // Redirigir al home después de cambiar la contraseña
-      navigate('/');
+      // Cerrar sesión para que el usuario inicie sesión con la nueva contraseña
+      logout();
+      // Redirigir al login con mensaje
+      navigate('/login', { 
+        state: { 
+          message: 'Contraseña cambiada exitosamente. Ahora inicia sesión con tu nueva contraseña.' 
+        },
+        replace: true 
+      });
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.detail || 'Error al cambiar la contraseña';

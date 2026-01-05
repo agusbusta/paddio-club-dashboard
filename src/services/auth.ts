@@ -14,6 +14,7 @@ export interface LoginResponse {
     email: string;
     is_admin: boolean;
     club_id?: number;
+    must_change_password?: boolean;
   };
 }
 
@@ -24,11 +25,12 @@ export interface ChangePasswordData {
 
 export const authService = {
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
-    const formData = new FormData();
-    formData.append('username', credentials.username);
-    formData.append('password', credentials.password);
+    // OAuth2PasswordRequestForm espera application/x-www-form-urlencoded
+    const params = new URLSearchParams();
+    params.append('username', credentials.username);
+    params.append('password', credentials.password);
     
-    const response = await api.post<LoginResponse>('/auth/token', formData, {
+    const response = await api.post<LoginResponse>('/auth/token', params.toString(), {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
