@@ -180,6 +180,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       };
 
       setUser(userData);
+      
+      // Verificar que el token esté en localStorage después de setear el usuario
+      const tokenAfterSetUser = localStorage.getItem('token');
+      const userAfterSetUser = localStorage.getItem('user');
+      console.log('🔍 [AUTH_CONTEXT] Después de setUser - Token:', tokenAfterSetUser ? 'OK' : 'ERROR');
+      console.log('🔍 [AUTH_CONTEXT] Después de setUser - User:', userAfterSetUser ? 'OK' : 'ERROR');
+      
       return { user: userData };
     } catch (error: any) {
       authService.logout();

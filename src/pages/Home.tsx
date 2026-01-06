@@ -27,6 +27,20 @@ export const Home: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Verificar el token cuando se monta la página
+  React.useEffect(() => {
+    console.log('🏠 [HOME] Página montada. Verificando localStorage...');
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    console.log('🏠 [HOME] Token en localStorage:', token ? 'OK' : 'ERROR');
+    console.log('🏠 [HOME] User en localStorage:', userStr ? 'OK' : 'ERROR');
+    console.log('🏠 [HOME] localStorage.length:', localStorage.length);
+    
+    if (!token) {
+      console.error('🚨 [HOME] CRÍTICO: No hay token en localStorage cuando se monta Home!');
+    }
+  }, []);
+
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ['clubStatistics', user?.club_id],
     queryFn: () => {

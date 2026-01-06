@@ -90,8 +90,27 @@ export const Login: React.FC = () => {
 
       toast.success('¡Bienvenido!');
       
+      // Verificar que el token esté en localStorage antes de navegar
+      const tokenBeforeNav = localStorage.getItem('token');
+      const userBeforeNav = localStorage.getItem('user');
+      console.log('🔍 [LOGIN] Antes de navegar - Token:', tokenBeforeNav ? 'OK' : 'ERROR');
+      console.log('🔍 [LOGIN] Antes de navegar - User:', userBeforeNav ? 'OK' : 'ERROR');
+      
       // Redirigir a la página solicitada o al home
       const from = (location.state as any)?.from?.pathname || '/';
+      
+      // Verificar después de un pequeño delay antes de navegar
+      setTimeout(() => {
+        const tokenAfterDelay = localStorage.getItem('token');
+        const userAfterDelay = localStorage.getItem('user');
+        console.log('🔍 [LOGIN] Después de delay antes de navegar - Token:', tokenAfterDelay ? 'OK' : 'ERROR');
+        console.log('🔍 [LOGIN] Después de delay antes de navegar - User:', userAfterDelay ? 'OK' : 'ERROR');
+        
+        if (!tokenAfterDelay) {
+          console.error('🚨 [LOGIN] CRÍTICO: El token desapareció antes de navegar!');
+        }
+      }, 50);
+      
       navigate(from, { replace: true });
     } catch (error: any) {
       const errorMessage =
