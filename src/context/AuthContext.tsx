@@ -37,17 +37,26 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Inicializar usuario desde localStorage inmediatamente para evitar redirección prematura
   const initializeUserFromStorage = (): User | null => {
-    console.log('🚀 initializeUserFromStorage: Inicializando desde localStorage...');
-    console.log('🚀 Dominio actual:', window.location.hostname);
-    console.log('🚀 URL completa:', window.location.href);
+    console.log('🚀 [REACT] initializeUserFromStorage: Inicializando desde localStorage...');
+    console.log('🚀 [REACT] Dominio actual:', window.location.hostname);
+    console.log('🚀 [REACT] URL completa:', window.location.href);
+    console.log('🚀 [REACT] localStorage.length:', localStorage.length);
+    
+    // Verificar el timestamp de debug
+    const debugCheck = localStorage.getItem('_debug_check');
+    console.log('🚀 [REACT] Timestamp de debug:', debugCheck ? 'OK' : 'NO ENCONTRADO');
     
     // Verificar todo el contenido de localStorage
-    console.log('🚀 Contenido completo de localStorage:');
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key) {
-        const value = localStorage.getItem(key);
-        console.log(`  - ${key}: ${value ? (key === 'token' ? `${value.substring(0, 20)}...` : value.substring(0, 50) + '...') : 'null'}`);
+    console.log('🚀 [REACT] Contenido completo de localStorage:');
+    if (localStorage.length === 0) {
+      console.log('  ⚠️ localStorage está COMPLETAMENTE VACÍO');
+    } else {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key) {
+          const value = localStorage.getItem(key);
+          console.log(`  - ${key}: ${value ? (key === 'token' ? `${value.substring(0, 20)}...` : value.substring(0, 50) + '...') : 'null'}`);
+        }
       }
     }
     

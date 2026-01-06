@@ -28,6 +28,43 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <script>
+      // Script que se ejecuta ANTES de que React se monte
+      // Para verificar el localStorage inmediatamente al cargar la página
+      (function() {
+        console.log('🔍 [PRE-REACT] Verificando localStorage ANTES de que React se monte...');
+        console.log('🔍 [PRE-REACT] Dominio:', window.location.hostname);
+        console.log('🔍 [PRE-REACT] URL:', window.location.href);
+        console.log('🔍 [PRE-REACT] localStorage.length:', localStorage.length);
+        
+        if (localStorage.length > 0) {
+          console.log('🔍 [PRE-REACT] Contenido de localStorage:');
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key) {
+              const value = localStorage.getItem(key);
+              console.log(`  - ${key}: ${value ? (key === 'token' ? value.substring(0, 20) + '...' : value.substring(0, 50) + '...') : 'null'}`);
+            }
+          }
+        } else {
+          console.log('🔍 [PRE-REACT] localStorage está VACÍO');
+        }
+        
+        // Guardar timestamp para verificar si se mantiene
+        const checkTime = Date.now();
+        localStorage.setItem('_debug_check', checkTime.toString());
+        console.log('🔍 [PRE-REACT] Timestamp guardado:', checkTime);
+        
+        // Verificar después de un pequeño delay
+        setTimeout(function() {
+          const savedCheck = localStorage.getItem('_debug_check');
+          console.log('🔍 [PRE-REACT] Verificación después de 50ms - Timestamp:', savedCheck);
+          if (savedCheck !== checkTime.toString()) {
+            console.error('🚨 [PRE-REACT] CRÍTICO: El localStorage se está limpiando!');
+          }
+        }, 50);
+      })();
+    </script>
     <div id="root"></div>
     <!--
       This HTML file is a template.
