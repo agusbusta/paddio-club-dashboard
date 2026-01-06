@@ -35,7 +35,26 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  // Inicializar usuario desde localStorage inmediatamente para evitar redirección prematura
+  const initializeUserFromStorage = (): User | null => {
+    const token = authService.getToken();
+    if (!token) return null;
+    
+    const savedUser = authService.getCurrentUser();
+    if (savedUser && savedUser.is_admin && savedUser.club_id) {
+      return {
+        id: String(savedUser.id),
+        name: savedUser.name,
+        email: savedUser.email,
+        is_admin: savedUser.is_admin,
+        club_id: savedUser.club_id,
+        must_change_password: savedUser.must_change_password,
+      };
+    }
+    return null;
+  };
+
+  const [user, setUser] = useState<User | null>(initializeUserFromStorage);
   const [isLoading, setIsLoading] = useState(true);
 
   const checkAuth = async () => {
@@ -61,6 +80,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           club_id: userData.club_id,
           must_change_password: userData.must_change_password,
         });
+        // Actualizar localStorage con datos frescos
+        localStorage.setItem('user', JSON.stringify(userData));
       } else {
         // No es admin o no tiene club, limpiar sesión
         authService.logout();
@@ -70,32 +91,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Error checking auth:', error);
       
       // Solo limpiar sesión si es un error 401 (no autorizado)
-      // Si es un error de red (sin response), mantener el token y el usuario del localStorage
       if (error.response?.status === 401) {
         // Token inválido o expirado
         authService.logout();
         setUser(null);
-      } else if (error.response) {
-        // Otro error HTTP, limpiar sesión
-        authService.logout();
-        setUser(null);
+      } else if (error.response && error.response.status >= 400) {
+        // Otro error HTTP (403, 404, 500, etc.), mantener usuario del localStorage
+        // No limpiar sesión para errores temporales del servidor
+        console.warn('Error HTTP al verificar auth, manteniendo sesión local:', error.response.status);
       } else {
-        // Error de red (sin conexión), intentar usar datos del localStorage
-        const savedUser = authService.getCurrentUser();
-        if (savedUser && savedUser.is_admin && savedUser.club_id) {
-          setUser({
-            id: String(savedUser.id),
-            name: savedUser.name,
-            email: savedUser.email,
-            is_admin: savedUser.is_admin,
-            club_id: savedUser.club_id,
-            must_change_password: savedUser.must_change_password,
-          });
-        } else {
-          // No hay usuario válido guardado, limpiar
-          authService.logout();
-          setUser(null);
-        }
+        // Error de red (sin conexión), mantener usuario del localStorage
+        // El usuario ya está inicializado desde localStorage, no hacer nada
+        console.warn('Error de red al verificar auth, usando sesión local');
       }
     } finally {
       setIsLoading(false);
