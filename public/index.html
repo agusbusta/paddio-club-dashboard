@@ -62,7 +62,25 @@
           if (savedCheck !== checkTime.toString()) {
             console.error('🚨 [PRE-REACT] CRÍTICO: El localStorage se está limpiando!');
           }
+          
+          // Verificar también token y user
+          const token = localStorage.getItem('token');
+          const user = localStorage.getItem('user');
+          console.log('🔍 [PRE-REACT] Token en localStorage:', token ? 'SÍ' : 'NO');
+          console.log('🔍 [PRE-REACT] User en localStorage:', user ? 'SÍ' : 'NO');
         }, 50);
+        
+        // Interceptar removeItem para detectar quién elimina el token
+        (function() {
+          const originalRemoveItem = Storage.prototype.removeItem;
+          Storage.prototype.removeItem = function(key) {
+            if (key === 'token' || key === 'user') {
+              console.error('🚨 [PRE-REACT] ALERTA: Alguien está eliminando', key, 'de localStorage!');
+              console.error('🚨 [PRE-REACT] Stack trace:', new Error().stack);
+            }
+            return originalRemoveItem.call(this, key);
+          };
+        })();
       })();
     </script>
     <div id="root"></div>

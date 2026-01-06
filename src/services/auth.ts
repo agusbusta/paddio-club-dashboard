@@ -63,6 +63,21 @@ export const authService = {
             console.error('🚨 CRÍTICO: El token desapareció inmediatamente después de guardarlo!');
           }
         }, 100);
+        
+        // Verificar después de 1 segundo y 5 segundos también
+        setTimeout(() => {
+          const token1s = localStorage.getItem('token');
+          const user1s = localStorage.getItem('user');
+          console.log('⏱️ Verificación después de 1s - Token:', token1s ? 'OK' : 'ERROR');
+          console.log('⏱️ Verificación después de 1s - Usuario:', user1s ? 'OK' : 'ERROR');
+        }, 1000);
+        
+        setTimeout(() => {
+          const token5s = localStorage.getItem('token');
+          const user5s = localStorage.getItem('user');
+          console.log('⏱️ Verificación después de 5s - Token:', token5s ? 'OK' : 'ERROR');
+          console.log('⏱️ Verificación después de 5s - Usuario:', user5s ? 'OK' : 'ERROR');
+        }, 5000);
       } catch (error) {
         console.error('❌ Error al guardar en localStorage:', error);
         throw error;
