@@ -37,22 +37,18 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expirado o inválido
-      // Solo redirigir si no estamos en la página de login y no es la verificación inicial
       const isAuthCheck = error.config?.url?.includes('/auth/me');
       
-      if (window.location.pathname !== '/login' && !isAuthCheck) {
-        // Limpiar sesión solo si no es la verificación inicial
-        // La verificación inicial la maneja AuthContext
+      // NO hacer nada si es la verificación inicial (/auth/me)
+      // Dejar que AuthContext maneje completamente este caso
+      if (!isAuthCheck && window.location.pathname !== '/login') {
+        // Solo redirigir y limpiar si NO es la verificación inicial
+        // y NO estamos ya en login
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        // Usar replace para evitar agregar al historial
         window.location.replace('/login');
-      } else if (isAuthCheck) {
-        // Si es la verificación inicial y falla con 401, limpiar localStorage
-        // pero dejar que AuthContext maneje la redirección
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
       }
+      // Si es /auth/me, NO hacer nada aquí - AuthContext lo maneja
     }
     return Promise.reject(error);
   }

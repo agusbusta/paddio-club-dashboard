@@ -61,48 +61,63 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const token = authService.getToken();
       if (!token) {
+        console.log('🔍 checkAuth: No hay token, limpiando sesión');
         setUser(null);
         setIsLoading(false);
         return;
       }
 
+      console.log('🔍 checkAuth: Verificando token con backend...');
       // Verificar token con el backend
       const response = await api.get('/auth/me');
+      console.log('✅ checkAuth: Respuesta del backend recibida', response.data);
+      
       const userData = response.data.user || response.data;
       
       // Verificar que sea admin y tenga club
       if (userData.is_admin && userData.club_id) {
-        setUser({
+        console.log('✅ checkAuth: Usuario válido (admin con club)');
+        const updatedUser = {
           id: String(userData.id),
           name: userData.name,
           email: userData.email,
           is_admin: userData.is_admin,
           club_id: userData.club_id,
           must_change_password: userData.must_change_password,
-        });
+        };
+        setUser(updatedUser);
         // Actualizar localStorage con datos frescos
         localStorage.setItem('user', JSON.stringify(userData));
       } else {
+        console.log('❌ checkAuth: Usuario no es admin o no tiene club');
         // No es admin o no tiene club, limpiar sesión
         authService.logout();
         setUser(null);
       }
     } catch (error: any) {
-      console.error('Error checking auth:', error);
+      console.error('❌ checkAuth: Error verificando auth:', error);
+      console.error('❌ checkAuth: Error details:', {
+        status: error.response?.status,
+        message: error.message,
+        url: error.config?.url,
+      });
       
       // Solo limpiar sesión si es un error 401 (no autorizado)
       if (error.response?.status === 401) {
+        console.log('❌ checkAuth: Token inválido o expirado (401), limpiando sesión');
         // Token inválido o expirado
         authService.logout();
         setUser(null);
       } else if (error.response && error.response.status >= 400) {
         // Otro error HTTP (403, 404, 500, etc.), mantener usuario del localStorage
         // No limpiar sesión para errores temporales del servidor
-        console.warn('Error HTTP al verificar auth, manteniendo sesión local:', error.response.status);
+        console.warn('⚠️ checkAuth: Error HTTP al verificar auth, manteniendo sesión local:', error.response.status);
+        // Mantener el usuario del localStorage (ya está inicializado)
       } else {
         // Error de red (sin conexión), mantener usuario del localStorage
         // El usuario ya está inicializado desde localStorage, no hacer nada
-        console.warn('Error de red al verificar auth, usando sesión local');
+        console.warn('⚠️ checkAuth: Error de red al verificar auth, usando sesión local');
+        // Mantener el usuario del localStorage (ya está inicializado)
       }
     } finally {
       setIsLoading(false);
