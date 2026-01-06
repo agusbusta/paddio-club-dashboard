@@ -2,8 +2,14 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
+// Log para debug (solo en desarrollo)
+if (process.env.NODE_ENV === 'development') {
+  console.log('API Base URL:', API_BASE_URL);
+}
+
 export const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 10000, // 10 segundos de timeout
   // No establecer Content-Type por defecto para permitir diferentes tipos en diferentes requests
 });
 
@@ -31,9 +37,13 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expirado o inválido
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      // Solo redirigir si no estamos en la página de login
+      if (window.location.pathname !== '/login') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        // Usar replace para evitar agregar al historial
+        window.location.replace('/login');
+      }
     }
     return Promise.reject(error);
   }

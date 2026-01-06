@@ -66,10 +66,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         authService.logout();
         setUser(null);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error checking auth:', error);
-      authService.logout();
-      setUser(null);
+      
+      // Solo limpiar sesión si es un error 401 (no autorizado)
+      // Si es un error de red (sin response), mantener el token y el usuario del localStorage
+      if (error.response?.status === 401) {
+        // Token inválido o expirado
+        authService.logout();
+        setUser(null);
+      } else if (error.response) {
+        // Otro error HTTP, limpiar sesión
+        authService.logout();
+        setUser(null);
+      } else {
+        // Error de red (sin conexión), intentar usar datos del localStorage
+        const savedUser = authService.getCurrentUser();
+        if (savedUser && savedUser.is_admin && savedUser.club_id) {
+          setUser({
+            id: String(savedUser.id),
+            name: savedUser.name,
+            email: savedUser.email,
+            is_admin: savedUser.is_admin,
+            club_id: savedUser.club_id,
+            must_change_password: savedUser.must_change_password,
+          });
+        } else {
+          // No hay usuario válido guardado, limpiar
+          authService.logout();
+          setUser(null);
+        }
+      }
     } finally {
       setIsLoading(false);
     }
