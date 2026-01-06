@@ -23,6 +23,8 @@ api.interceptors.request.use(
     if (!config.headers['Content-Type'] && !config.headers['content-type']) {
       config.headers['Content-Type'] = 'application/json';
     }
+    // Agregar header para evitar la página de advertencia de ngrok
+    config.headers['ngrok-skip-browser-warning'] = 'true';
     return config;
   },
   (error) => {

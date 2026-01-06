@@ -105,6 +105,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await api.get('/auth/me');
       console.log('✅ checkAuth: Respuesta del backend recibida', response.data);
       console.log('✅ checkAuth: Tipo de respuesta.data:', typeof response.data);
+      console.log('✅ checkAuth: Content-Type:', response.headers['content-type']);
+      
+      // Verificar si la respuesta es HTML (ngrok está interceptando)
+      if (typeof response.data === 'string' && response.data.trim().startsWith('<!DOCTYPE html>')) {
+        console.error('🚨 checkAuth: ngrok está interceptando la petición y devolviendo HTML en lugar de JSON');
+        console.error('🚨 checkAuth: Esto significa que ngrok está bloqueando la petición');
+        console.warn('⚠️ checkAuth: Manteniendo sesión del localStorage ya que el token es válido');
+        // Mantener el usuario del localStorage si el token es válido
+        return;
+      }
+      
       console.log('✅ checkAuth: response.data.user:', response.data.user);
       console.log('✅ checkAuth: response.data directamente:', response.data);
       
