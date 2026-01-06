@@ -38,6 +38,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Inicializar usuario desde localStorage inmediatamente para evitar redirección prematura
   const initializeUserFromStorage = (): User | null => {
     console.log('🚀 initializeUserFromStorage: Inicializando desde localStorage...');
+    console.log('🚀 Dominio actual:', window.location.hostname);
+    console.log('🚀 URL completa:', window.location.href);
+    
+    // Verificar todo el contenido de localStorage
+    console.log('🚀 Contenido completo de localStorage:');
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) {
+        const value = localStorage.getItem(key);
+        console.log(`  - ${key}: ${value ? (key === 'token' ? `${value.substring(0, 20)}...` : value.substring(0, 50) + '...') : 'null'}`);
+      }
+    }
+    
     const token = authService.getToken();
     console.log('🚀 initializeUserFromStorage: Token encontrado:', token ? 'Sí' : 'No');
     
@@ -170,7 +183,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
   };
 
+  // Listener para detectar cambios en localStorage
   useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'token') {
+        console.log('🔔 Storage Event: Token cambió en localStorage', {
+          oldValue: e.oldValue ? `${e.oldValue.substring(0, 20)}...` : 'null',
+          newValue: e.newValue ? `${e.newValue.substring(0, 20)}...` : 'null',
+          url: e.url,
+        });
+      }
+    };
+
+    // Escuchar cambios en localStorage desde otras pestañas/ventanas
+    window.addEventListener('storage', handleStorageChange);
+
+    // Verificar el token periódicamente para detectar si se está limpiando
+    const checkTokenInterval = setInterval(() => {
+      const currentToken = localStorage.getItem('token');
+      if (!currentToken && user) {
+        console.error('🚨 ALERTA: Token desapareció de localStorage mientras el usuario está autenticado!');
+        console.error('🚨 Usuario actual:', user);
+        console.error('🚨 Stack trace:', new Error().stack);
+      }
+    }, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(checkTokenInterval);
+    };
+  }, [user]);
+
+  useEffect(() => {
+    // Verificar inmediatamente al montar
+    console.log('🔄 useEffect checkAuth: Iniciando verificación de autenticación...');
+    console.log('🔄 Token en localStorage al iniciar checkAuth:', localStorage.getItem('token') ? 'Sí' : 'No');
     checkAuth();
   }, []);
 

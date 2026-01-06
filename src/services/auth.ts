@@ -39,9 +39,34 @@ export const authService = {
     // Guardar token y usuario
     if (response.data.access_token) {
       console.log('💾 Guardando token en localStorage:', response.data.access_token.substring(0, 20) + '...');
-      localStorage.setItem('token', response.data.access_token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      console.log('✅ Token guardado. Verificando lectura:', localStorage.getItem('token') ? 'OK' : 'ERROR');
+      console.log('💾 Dominio actual:', window.location.hostname);
+      console.log('💾 URL completa:', window.location.href);
+      
+      try {
+        localStorage.setItem('token', response.data.access_token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        // Verificar inmediatamente después de guardar
+        const savedToken = localStorage.getItem('token');
+        const savedUser = localStorage.getItem('user');
+        console.log('✅ Token guardado. Verificando lectura:', savedToken ? 'OK' : 'ERROR');
+        console.log('✅ Usuario guardado. Verificando lectura:', savedUser ? 'OK' : 'ERROR');
+        
+        // Verificar después de un pequeño delay para asegurar que se guardó
+        setTimeout(() => {
+          const delayedToken = localStorage.getItem('token');
+          const delayedUser = localStorage.getItem('user');
+          console.log('⏱️ Verificación después de 100ms - Token:', delayedToken ? 'OK' : 'ERROR');
+          console.log('⏱️ Verificación después de 100ms - Usuario:', delayedUser ? 'OK' : 'ERROR');
+          
+          if (!delayedToken) {
+            console.error('🚨 CRÍTICO: El token desapareció inmediatamente después de guardarlo!');
+          }
+        }, 100);
+      } catch (error) {
+        console.error('❌ Error al guardar en localStorage:', error);
+        throw error;
+      }
     } else {
       console.error('❌ No se recibió access_token en la respuesta');
     }
