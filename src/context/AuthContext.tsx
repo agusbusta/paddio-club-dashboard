@@ -104,8 +104,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Verificar token con el backend
       const response = await api.get('/auth/me');
       console.log('✅ checkAuth: Respuesta del backend recibida', response.data);
+      console.log('✅ checkAuth: Tipo de respuesta.data:', typeof response.data);
+      console.log('✅ checkAuth: response.data.user:', response.data.user);
+      console.log('✅ checkAuth: response.data directamente:', response.data);
       
       const userData = response.data.user || response.data;
+      console.log('✅ checkAuth: userData final:', userData);
+      console.log('✅ checkAuth: userData.is_admin:', userData.is_admin);
+      console.log('✅ checkAuth: userData.club_id:', userData.club_id);
       
       // Verificar que sea admin y tenga club
       if (userData.is_admin && userData.club_id) {
@@ -123,9 +129,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(userData));
       } else {
         console.log('❌ checkAuth: Usuario no es admin o no tiene club');
-        // No es admin o no tiene club, limpiar sesión
-        authService.logout();
-        setUser(null);
+        console.log('❌ checkAuth: userData completo:', JSON.stringify(userData, null, 2));
+        console.log('❌ checkAuth: is_admin:', userData.is_admin, 'tipo:', typeof userData.is_admin);
+        console.log('❌ checkAuth: club_id:', userData.club_id, 'tipo:', typeof userData.club_id);
+        
+        // NO limpiar sesión si el token es válido pero falta información
+        // Solo limpiar si realmente no es admin (no si es undefined/null)
+        if (userData.is_admin === false) {
+          console.log('❌ checkAuth: Usuario confirmado como NO admin, limpiando sesión');
+          authService.logout();
+          setUser(null);
+        } else if (userData.is_admin === undefined || userData.is_admin === null) {
+          console.warn('⚠️ checkAuth: is_admin es undefined/null, manteniendo sesión del localStorage');
+          // Mantener el usuario del localStorage si el token es válido
+        } else {
+          console.warn('⚠️ checkAuth: Usuario es admin pero no tiene club_id, manteniendo sesión del localStorage');
+          // Mantener el usuario del localStorage si el token es válido
+        }
       }
     } catch (error: any) {
       console.error('❌ checkAuth: Error verificando auth:', error);
