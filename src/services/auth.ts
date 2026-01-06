@@ -38,8 +38,12 @@ export const authService = {
     
     // Guardar token y usuario
     if (response.data.access_token) {
+      console.log('💾 Guardando token en localStorage:', response.data.access_token.substring(0, 20) + '...');
       localStorage.setItem('token', response.data.access_token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
+      console.log('✅ Token guardado. Verificando lectura:', localStorage.getItem('token') ? 'OK' : 'ERROR');
+    } else {
+      console.error('❌ No se recibió access_token en la respuesta');
     }
     
     return response.data;
@@ -57,7 +61,9 @@ export const authService = {
   },
 
   getToken: () => {
-    return localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    console.log('🔑 getToken llamado. Token encontrado:', token ? `${token.substring(0, 20)}...` : 'null');
+    return token;
   },
 
   changePassword: async (data: ChangePasswordData): Promise<void> => {

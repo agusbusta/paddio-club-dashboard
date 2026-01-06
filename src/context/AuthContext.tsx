@@ -37,12 +37,20 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Inicializar usuario desde localStorage inmediatamente para evitar redirección prematura
   const initializeUserFromStorage = (): User | null => {
+    console.log('🚀 initializeUserFromStorage: Inicializando desde localStorage...');
     const token = authService.getToken();
-    if (!token) return null;
+    console.log('🚀 initializeUserFromStorage: Token encontrado:', token ? 'Sí' : 'No');
+    
+    if (!token) {
+      console.log('🚀 initializeUserFromStorage: No hay token, retornando null');
+      return null;
+    }
     
     const savedUser = authService.getCurrentUser();
+    console.log('🚀 initializeUserFromStorage: Usuario guardado:', savedUser ? `${savedUser.name} (admin: ${savedUser.is_admin}, club: ${savedUser.club_id})` : 'null');
+    
     if (savedUser && savedUser.is_admin && savedUser.club_id) {
-      return {
+      const user = {
         id: String(savedUser.id),
         name: savedUser.name,
         email: savedUser.email,
@@ -50,7 +58,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         club_id: savedUser.club_id,
         must_change_password: savedUser.must_change_password,
       };
+      console.log('✅ initializeUserFromStorage: Usuario válido inicializado');
+      return user;
     }
+    console.log('❌ initializeUserFromStorage: Usuario no válido (no es admin o no tiene club)');
     return null;
   };
 
