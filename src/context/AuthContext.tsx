@@ -91,101 +91,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const checkAuth = async () => {
-    try {
-      const token = authService.getToken();
-      if (!token) {
-        console.log('🔍 checkAuth: No hay token, limpiando sesión');
-        setUser(null);
-        setIsLoading(false);
-        return;
-      }
-
-      console.log('🔍 checkAuth: Verificando token con backend...');
-      // Verificar token con el backend
-      const response = await api.get('/auth/me');
-      console.log('✅ checkAuth: Respuesta del backend recibida', response.data);
-      console.log('✅ checkAuth: Tipo de respuesta.data:', typeof response.data);
-      console.log('✅ checkAuth: Content-Type:', response.headers['content-type']);
-      
-      // Verificar si la respuesta es HTML (ngrok está interceptando)
-      if (typeof response.data === 'string' && response.data.trim().startsWith('<!DOCTYPE html>')) {
-        console.error('🚨 checkAuth: ngrok está interceptando la petición y devolviendo HTML en lugar de JSON');
-        console.error('🚨 checkAuth: Esto significa que ngrok está bloqueando la petición');
-        console.warn('⚠️ checkAuth: Manteniendo sesión del localStorage ya que el token es válido');
-        // Mantener el usuario del localStorage si el token es válido
-        return;
-      }
-      
-      console.log('✅ checkAuth: response.data.user:', response.data.user);
-      console.log('✅ checkAuth: response.data directamente:', response.data);
-      
-      const userData = response.data.user || response.data;
-      console.log('✅ checkAuth: userData final:', userData);
-      console.log('✅ checkAuth: userData.is_admin:', userData.is_admin);
-      console.log('✅ checkAuth: userData.club_id:', userData.club_id);
-      
-      // Verificar que sea admin y tenga club
-      if (userData.is_admin && userData.club_id) {
-        console.log('✅ checkAuth: Usuario válido (admin con club)');
-        const updatedUser = {
-          id: String(userData.id),
-          name: userData.name,
-          email: userData.email,
-          is_admin: userData.is_admin,
-          club_id: userData.club_id,
-          must_change_password: userData.must_change_password,
-        };
-        setUser(updatedUser);
-        // Actualizar localStorage con datos frescos
-        localStorage.setItem('user', JSON.stringify(userData));
-      } else {
-        console.log('❌ checkAuth: Usuario no es admin o no tiene club');
-        console.log('❌ checkAuth: userData completo:', JSON.stringify(userData, null, 2));
-        console.log('❌ checkAuth: is_admin:', userData.is_admin, 'tipo:', typeof userData.is_admin);
-        console.log('❌ checkAuth: club_id:', userData.club_id, 'tipo:', typeof userData.club_id);
-        
-        // NO limpiar sesión si el token es válido pero falta información
-        // Solo limpiar si realmente no es admin (no si es undefined/null)
-        if (userData.is_admin === false) {
-          console.log('❌ checkAuth: Usuario confirmado como NO admin, limpiando sesión');
-          authService.logout();
-          setUser(null);
-        } else if (userData.is_admin === undefined || userData.is_admin === null) {
-          console.warn('⚠️ checkAuth: is_admin es undefined/null, manteniendo sesión del localStorage');
-          // Mantener el usuario del localStorage si el token es válido
-        } else {
-          console.warn('⚠️ checkAuth: Usuario es admin pero no tiene club_id, manteniendo sesión del localStorage');
-          // Mantener el usuario del localStorage si el token es válido
-        }
-      }
-    } catch (error: any) {
-      console.error('❌ checkAuth: Error verificando auth:', error);
-      console.error('❌ checkAuth: Error details:', {
-        status: error.response?.status,
-        message: error.message,
-        url: error.config?.url,
-      });
-      
-      // Solo limpiar sesión si es un error 401 (no autorizado)
-      if (error.response?.status === 401) {
-        console.log('❌ checkAuth: Token inválido o expirado (401), limpiando sesión');
-        // Token inválido o expirado
-        authService.logout();
-        setUser(null);
-      } else if (error.response && error.response.status >= 400) {
-        // Otro error HTTP (403, 404, 500, etc.), mantener usuario del localStorage
-        // No limpiar sesión para errores temporales del servidor
-        console.warn('⚠️ checkAuth: Error HTTP al verificar auth, manteniendo sesión local:', error.response.status);
-        // Mantener el usuario del localStorage (ya está inicializado)
-      } else {
-        // Error de red (sin conexión), mantener usuario del localStorage
-        // El usuario ya está inicializado desde localStorage, no hacer nada
-        console.warn('⚠️ checkAuth: Error de red al verificar auth, usando sesión local');
-        // Mantener el usuario del localStorage (ya está inicializado)
-      }
-    } finally {
+    // Simplificado: solo verificar que haya token y usuario en localStorage
+    // El token se validará automáticamente cuando se haga cualquier petición
+    // Si el token es inválido, el interceptor de API manejará el 401
+    const token = authService.getToken();
+    if (!token) {
+      console.log('🔍 checkAuth: No hay token, limpiando sesión');
+      setUser(null);
       setIsLoading(false);
+      return;
     }
+
+    // El usuario ya está inicializado desde localStorage
+    // No necesitamos verificar con el backend al inicio
+    // Si el token es inválido, las peticiones fallarán con 401 y el interceptor lo manejará
+    console.log('✅ checkAuth: Token encontrado, usuario ya inicializado desde localStorage');
+    setIsLoading(false);
   };
 
   const login = async (credentials: LoginCredentials) => {

@@ -49,12 +49,7 @@ api.interceptors.response.use(
       console.error('🚨 [API] ngrok está interceptando la petición:', response.config.url);
       console.error('🚨 [API] Devuelve HTML en lugar de JSON');
       
-      // Si es una petición de autenticación, no lanzar error (ya se maneja en AuthContext)
-      if (response.config.url?.includes('/auth/me')) {
-        return response; // Dejar que AuthContext lo maneje
-      }
-      
-      // Para otras peticiones, lanzar un error específico
+      // Lanzar un error específico para que se maneje apropiadamente
       const error = new Error('ngrok está interceptando la petición');
       (error as any).isNgrokInterception = true;
       (error as any).response = response;
@@ -73,19 +68,12 @@ api.interceptors.response.use(
     }
     
     if (error.response?.status === 401) {
-      // Token expirado o inválido
-      const isAuthCheck = error.config?.url?.includes('/auth/me');
-      
-      // NO hacer nada si es la verificación inicial (/auth/me)
-      // Dejar que AuthContext maneje completamente este caso
-      if (!isAuthCheck && window.location.pathname !== '/login') {
-        // Solo redirigir y limpiar si NO es la verificación inicial
-        // y NO estamos ya en login
+      // Token expirado o inválido - limpiar sesión y redirigir
+      if (window.location.pathname !== '/login') {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.replace('/login');
       }
-      // Si es /auth/me, NO hacer nada aquí - AuthContext lo maneja
     }
     return Promise.reject(error);
   }
