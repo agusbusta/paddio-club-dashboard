@@ -27,13 +27,6 @@ api.interceptors.request.use(
     // ngrok requiere este header para saltarse la página de advertencia del navegador
     config.headers['ngrok-skip-browser-warning'] = 'true';
     
-    // También agregar como parámetro de query string si la URL es de ngrok
-    if (API_BASE_URL.includes('ngrok') && config.url) {
-      // Si la URL ya tiene parámetros de query, agregar el nuestro
-      const separator = config.url.includes('?') ? '&' : '?';
-      config.url = `${config.url}${separator}ngrok-skip-browser-warning=true`;
-    }
-    
     // Log para debug (siempre para verificar en producción)
     console.log('📤 [API] Request:', config.method?.toUpperCase(), config.url);
     console.log('📤 [API] Headers:', {
